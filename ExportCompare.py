@@ -1,7 +1,5 @@
 from OneDataOfAcc import OneDataOfAcc
 from OneKeyin import OneKeyin
-from _231230a import data_acc_sunday, data_keyin_sunday, dict_date_subpoena, exportCompare
-
 
 import linque as lq
 import openpyxl
@@ -11,36 +9,20 @@ from openpyxl.worksheet.worksheet import Worksheet
 import typing as t
 from datetime import datetime
 
+from generate_dict_subpoena_date import generate_dict_subpoena_date
+
 
 class ExportCompare:
+    """231230a.py 使用"""
     def __init__(self):
         self.row: int
         self.sh: Worksheet
         self.keyBool_acc: t.Dict[str, bool]
         self.keyBool_keyin: t.Dict[datetime, bool]
-    def _init_keyBool_to_false(self,data_acc_sunday: t.List[OneDataOfAcc], data_keyin_sunday: t.List[OneKeyin]):
-        # 列出所有 key, 最後再把沒輸出的輸出出來
-        keyBool_acc = lq.linque(data_acc_sunday).select(lambda a1: a1.subpoena).distinct().to_dict(lambda a1: a1, lambda a1: False)
-        keyBool_keyin = lq.linque(data_keyin_sunday).select(lambda a1: a1.date).distinct().to_dict(lambda a1: a1, lambda a1: False)
-
-        self.keyBool_acc = keyBool_acc
-        self.keyBool_keyin = keyBool_keyin
-    def _find_pair_sunday_and_write_each_pair(self, acc: OneDataOfAcc, keyins: t.List[OneKeyin]):
-        # 以 keyin 鍵為主，從 acc 中找，如果沒找到，就記載
-        for a1 in lq.linque(data_keyin_sunday).group(lambda a1: a1.date):
-            date: datetime = a1[0]
-            r1: lq.Linque = a1[1]
-            if date in dict_date_subpoena:
-                subpoena = dict_date_subpoena[date]
-                self.keyBool_acc[subpoena] = True
-                self.keyBool_keyin[date] = True
-
-                exportCompare.do_one_pair(subpoena, date)
-            else:
-                # self.keyBool_keyin[date] 會保持 False，第二階段再輸出
-                pass
-
-        pass
+        self.data_acc_sunday: t.List[OneDataOfAcc] 
+        self.data_keyin_sunday: t.List[OneKeyin]
+        self.dict_date_subpoena: t.Dict[datetime, str]
+    
     def main(self, sh: Worksheet, data_acc_sunday: t.List[OneDataOfAcc], data_keyin_sunday: t.List[OneKeyin]):
         """ 主流程
 
@@ -51,19 +33,48 @@ class ExportCompare:
         """
         self.sh = sh
         self.row = 2
+        self.data_acc_sunday = data_acc_sunday
+        self.data_keyin_sunday = data_keyin_sunday
 
+        self._generate_dict_subpoena_date(data_acc_sunday)
         self._init_keyBool_to_false(data_acc_sunday, data_keyin_sunday)
 
         self._write_header()
 
-        self._find_pair_sunday_and_write_each_pair(data_acc_sunday, data_keyin_sunday)
+        self._find_pair_sunday_and_write_each_pair()
 
-        self._do_residue(data_acc_sunday, data_keyin_sunday)
+        self._do_residue()
 
         # 修正格式 (非必要)
         self._set_date_format(sh)
         self._set_money_format(sh)
+    def _generate_dict_subpoena_date(self, data_acc_sunday: t.List[OneDataOfAcc]):
+        # 1/1雙福建堂奉獻存入土銀建堂
+        self.dict_date_subpoena = generate_dict_subpoena_date(data_acc_sunday)
+        
+    def _init_keyBool_to_false(self,data_acc_sunday: t.List[OneDataOfAcc], data_keyin_sunday: t.List[OneKeyin]):
+        # 列出所有 key, 最後再把沒輸出的輸出出來
+        keyBool_acc = lq.linque(data_acc_sunday).select(lambda a1: a1.subpoena).distinct().to_dict(lambda a1: a1, lambda a1: False)
+        keyBool_keyin = lq.linque(data_keyin_sunday).select(lambda a1: a1.date).distinct().to_dict(lambda a1: a1, lambda a1: False)
 
+        self.keyBool_acc = keyBool_acc
+        self.keyBool_keyin = keyBool_keyin
+    def _find_pair_sunday_and_write_each_pair(self):
+        # 以 keyin 鍵為主，從 acc 中找，如果沒找到，就記載
+        for a1 in lq.linque(self.data_keyin_sunday).group(lambda a1: a1.date):
+            date: datetime = a1[0]
+            r1: lq.Linque = a1[1]
+            if date in self.dict_date_subpoena:
+                subpoena = self.dict_date_subpoena[date]
+                self.keyBool_acc[subpoena] = True
+                self.keyBool_keyin[date] = True
+
+                self.do_one_pair(subpoena, date)
+            else:
+                # self.keyBool_keyin[date] 會保持 False，第二階段再輸出
+                pass
+
+        pass
     def _set_date_format(self, sh: Worksheet):
         # B, H 日期
         for i in range(2, sh.max_row+1):
@@ -119,8 +130,8 @@ class ExportCompare:
         return False
 
     def do_one_pair(self,acckey: str, keyinkey: datetime):
-        r1: t.List[OneDataOfAcc] = lq.linque(data_acc_sunday).where(lambda a1: a1.subpoena==acckey).to_list()
-        r2: t.List[OneKeyin] = lq.linque(data_keyin_sunday).where(lambda a1: a1.date==keyinkey).to_list()
+        r1: t.List[OneDataOfAcc] = lq.linque(self.data_acc_sunday).where(lambda a1: a1.subpoena==acckey).to_list()
+        r2: t.List[OneKeyin] = lq.linque(self.data_keyin_sunday).where(lambda a1: a1.date==keyinkey).to_list()
 
         # acc 傳票號碼 日期 科目 部門 金額 摘要 ; ; keyin 日期 科目 部門 金額 摘要
         countRow = max(len(r1), len(r2))
@@ -134,7 +145,7 @@ class ExportCompare:
                 if self._chk_is_fit_any_keyin(acc, r2):
                     cell = sh.cell(row=row, column=5)
                     # 文字顏色 綠色
-                    cell.font = openpyxl.styles.Font(color='208800')
+                    cell.font = openpyxl.styles.Font(color='008800')
 
             if keyin is not None:
                 self._print_keyin(keyin, row)
@@ -167,20 +178,20 @@ class ExportCompare:
         sh.cell(row=row, column=12).value = keyin.memo
 
 
-    def _do_residue(self, data_acc_sunday: t.List[OneDataOfAcc], data_keyin_sunday: t.List[OneKeyin]):
+    def _do_residue(self):
         """ 將所有剩的，組點一整份 List """
         row = self.row
 
         # 剩下沒有輸出的 acc
         acc2: t.List[OneDataOfAcc] = []
         for a1 in lq.linque(self.keyBool_acc).where(lambda a1: self.keyBool_acc[a1]==False):
-            r1 = lq.linque(data_acc_sunday).where(lambda a2: a2.subpoena==a1).to_list()
+            r1 = lq.linque(self.data_acc_sunday).where(lambda a2: a2.subpoena==a1).to_list()
             acc2.extend(r1)
 
         # 剩下沒有輸出的 keyin
         keyin2: t.List[OneKeyin] = []
         for a1 in lq.linque(self.keyBool_keyin).where(lambda a1: self.keyBool_keyin[a1]==False):
-            r1 = lq.linque(data_keyin_sunday).where(lambda a2: a2.date==a1).to_list()
+            r1 = lq.linque(self.data_keyin_sunday).where(lambda a2: a2.date==a1).to_list()
             keyin2.extend(r1)
 
         # 輸出    
