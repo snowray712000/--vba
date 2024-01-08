@@ -48,6 +48,8 @@ class OneKeyin:
             return '4314100', 'A04'
         elif r1 == '建堂修繕':
             return '4312100', 'A02'
+        elif r1 == '宣教事工':
+            return '4313100', 'A03'
         elif r1 == '愛心救助':
             return '4315100', 'A05'
         elif r1 == '特別奉獻':
