@@ -7,13 +7,26 @@ from datetime import datetime
 
 class OneKeyin:
     dictSubject: t.Dict[str,str] = {"1":"代轉奉獻", "3":"專案奉獻", "4":"什一奉獻", "5":"主日奉獻", "6":"感恩奉獻", "7":"初熟果子", "8":"主日學", "9":"團契奉獻", "10":"設備購置", "11":"場地維護", "12":"建堂修繕", "13":"宣教事工", "14":"開拓植堂", "15":"神學培育", "16":"獎助學金", "17":"愛心救助", "18":"堂會奉獻款", "19":"堂會奉獻款-外會", "21":"特別奉獻", "22":"牧區愛心基金", "243":"學生中心", "244":"購地", "253":"喜樂班", "331":"雙福恩典團契","x":"其他","x2":"租金"}
-    def __init__(self, money: int, date: datetime, subject1: str, subject2: str, who: str, memo: str):
+    def __init__(self, money: int, date: datetime, subject1: str, subject2: str, who: str, memo: str, isUpload = None):
         self.money = money
         self.date = date
         self.subject1 = subject1
         self.subject2 = subject2
         self.who = who
         self.memo = memo
+        
+        if isUpload is not None:
+            if isinstance(isUpload, str):
+                # trim後，空字串，則設為 None
+                if isUpload.strip() == '':
+                    self.isUpload = False
+                else:
+                    self.isUpload = True
+            else:
+                self.isUpload = True
+        else:
+            self.isUpload = False
+        
     def __repr__(self) -> str:
         return f'{self.money} {self.date} {self.subject1str} {self.subject2str} {self.who}'
     @property
@@ -64,3 +77,19 @@ class OneKeyin:
             return '4131000', 'A01'
         else:
             return '代轉', ''
+    @property
+    def isUpload(self)->bool:
+        """ 是否已經上傳
+
+        - Notes:
+            - 之所以用 None 表示還沒上傳，是因為原本手動輸入時，會維持空白，上傳後，會寫 1。    
+        """
+        return self._isupload is not None
+    @isUpload.setter
+    def isUpload(self, value: bool):
+        if value:
+            self._isupload = 1
+        else:
+            # 使 _isupload 變為 None
+            self._isupload = None
+            
