@@ -1,2 +1,6 @@
 *.xlsx
+*.xls
+*.mov
+*.pdf
 __pycache__/*
+2023_財務奉獻對帳工具.pptx
