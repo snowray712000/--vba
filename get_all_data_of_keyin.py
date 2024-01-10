@@ -11,8 +11,8 @@ import typing as t
 from datetime import datetime
 
 
-def get_all_data_of_keyin(filename: str)-> t.Tuple[t.List[OneKeyin], t.List[OneKeyin]]:
-    bk: Workbook = openpyxl.load_workbook('2023 奉獻輸入資料.xlsx')
+def get_all_data_of_keyin(path: str)-> t.Tuple[t.List[OneKeyin], t.List[OneKeyin]]:
+    bk: Workbook = openpyxl.load_workbook(path)
     sh: Worksheet = bk['輸入原始資料 2023']
     
     def get_this_sheet(sh: Worksheet)->t.List[OneKeyin]:
@@ -39,7 +39,7 @@ def get_all_data_of_keyin(filename: str)-> t.Tuple[t.List[OneKeyin], t.List[OneK
                 subject2 = str(subject2)
                 subject2 = subject2.strip()
 
-            return OneKeyin(money, date, subject1, subject2, who, memo, uploadSet)
+            return OneKeyin(money, date, subject1, subject2, who, memo, uploadSet, rowOfSheet=a1)
         return lq.linque(range(2, max_row+1)).where(fn_1).select(fn_select_to_keyin).to_list()
 
     return get_this_sheet(bk['輸入原始資料 2023']), get_this_sheet(bk['輸入原始資料_2023_轉帳'])

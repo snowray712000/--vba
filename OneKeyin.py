@@ -3,11 +3,11 @@
 
 import typing as t
 from datetime import datetime
-
+from openpyxl.worksheet.worksheet import Worksheet
 
 class OneKeyin:
     dictSubject: t.Dict[str,str] = {"1":"代轉奉獻", "3":"專案奉獻", "4":"什一奉獻", "5":"主日奉獻", "6":"感恩奉獻", "7":"初熟果子", "8":"主日學", "9":"團契奉獻", "10":"設備購置", "11":"場地維護", "12":"建堂修繕", "13":"宣教事工", "14":"開拓植堂", "15":"神學培育", "16":"獎助學金", "17":"愛心救助", "18":"堂會奉獻款", "19":"堂會奉獻款-外會", "21":"特別奉獻", "22":"牧區愛心基金", "243":"學生中心", "244":"購地", "253":"喜樂班", "331":"雙福恩典團契","x":"其他","x2":"租金"}
-    def __init__(self, money: int, date: datetime, subject1: str, subject2: str, who: str, memo: str, isUpload = None):
+    def __init__(self, money: int, date: datetime, subject1: str, subject2: str, who: str, memo: str, isUpload = None, rowOfSheet: int = None):
         self.money = money
         self.date = date
         self.subject1 = subject1
@@ -26,6 +26,9 @@ class OneKeyin:
                 self.isUpload = True
         else:
             self.isUpload = False
+        
+        # 因為要更新 isUpload，所以記一下當時的 row 。 搭配 setUploadCell 使用
+        self.rowOfSheet = rowOfSheet
         
     def __repr__(self) -> str:
         return f'{self.money} {self.date} {self.subject1str} {self.subject2str} {self.who}'
@@ -92,4 +95,12 @@ class OneKeyin:
         else:
             # 使 _isupload 變為 None
             self._isupload = None
+            
+    def setUploadCell(self, sh: Worksheet):
+        if self.rowOfSheet is None:
+            raise Exception('rowOfSheet is None')
+        if self.isUpload:
+            sh.cell(row=self.rowOfSheet, column=8).value = 1
+        else:
+            sh.cell(row=self.rowOfSheet, column=8).value = None
             

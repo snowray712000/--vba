@@ -23,6 +23,10 @@ from OneKeyin import OneKeyin
 r1 = lq.linq(data_keyin_sunday).count(lambda a1: a1.isUpload)
 print(f'已經上傳的筆數: {r1}')
 # 
-# wb2 = openpyxl.load_workbook('2023 奉獻輸入資料.xlsx')
-# sh2a = wb2['輸入原始資料 2023']
+wb2 = openpyxl.load_workbook('2023 奉獻輸入資料.xlsx')
+sh2a = wb2['輸入原始資料 2023']
 # sh2b = wb2['輸入原始資料_2023_轉帳']
+data_keyin_sunday[0].isUpload = True
+data_keyin_sunday[0].setUploadCell(sh2a)
+
+wb2.save('2023 奉獻輸入資料2.xlsx')
