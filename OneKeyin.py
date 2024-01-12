@@ -12,7 +12,7 @@ class OneKeyin:
         self.date = date
         self.subject1 = subject1
         self.subject2 = subject2
-        self.who = who
+        self._who = who
         self.memo = memo
         
         if isUpload is not None:
@@ -31,9 +31,9 @@ class OneKeyin:
         self.rowOfSheet = rowOfSheet
         
     def __repr__(self) -> str:
-        return f'{self.money} {self.date} {self.subject1str} {self.subject2str} {self.who}'
+        return f'{self.money} {self.date} {self.subject1str} {self.subject2str} {self._who}'
     @property
-    def subject2str(self)->str:
+    def subject2str(self)->t.Literal['購地','學生中心','喜樂班','雙福恩典團契','']:
         # check        
         if self.subject1 is None:
             return ''
@@ -42,7 +42,7 @@ class OneKeyin:
 
         return OneKeyin.dictSubject[self.subject2]
     @property
-    def subject1str(self)->str:
+    def subject1str(self)->t.Literal['主日奉獻','什一奉獻','感恩奉獻','代轉奉獻','神學培育','建堂修繕','宣教事工','愛心救助','特別奉獻','其他','租金','']:
         # check exist key
         if self.subject1 is None:
             return ''
@@ -103,4 +103,13 @@ class OneKeyin:
             sh.cell(row=self.rowOfSheet, column=8).value = 1
         else:
             sh.cell(row=self.rowOfSheet, column=8).value = None
-            
+    @property
+    def who(self)-> t.Union[str,int]:
+        """ 有時候是輸入袋號，有時候是輸入姓名，若是袋號，就轉為 int。 """
+        if isinstance(self._who, int):            
+            return self._who
+        if isinstance(self._who, str):
+            if self._who.isdigit():
+                return int(self._who)
+            return self._who
+        return self._who

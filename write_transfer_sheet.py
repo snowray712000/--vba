@@ -43,9 +43,9 @@ def write_transfer_sheet(sh: Worksheet,data_not_sunday_acc: t.List[OneDataOfAcc]
                     return True
             return False
         def _chk_keyin_name_in_accs(keyin: OneKeyin, accs: t.List[OneDataOfAcc])->bool:
-            if '尾碼' in keyin.who:
+            if '尾碼' in keyin._who:
                 # `尾碼07321` 這種格式時，要取出 07321。
-                who = re.search(r'尾碼(\d+)', keyin.who).group(1)
+                who = re.search(r'尾碼(\d+)', keyin._who).group(1)
 
                 for acc in accs:
                     if acc.date == keyin.date and acc.money == keyin.money and acc.subject == keyin.subjectNumber[0] and acc.department == keyin.subjectNumber[1] and who in acc.memo:
@@ -54,7 +54,7 @@ def write_transfer_sheet(sh: Worksheet,data_not_sunday_acc: t.List[OneDataOfAcc]
             else:
                 # `阿張三` 或 `16` 這種格式的
                 for acc in accs:
-                    if acc.date == keyin.date and acc.money == keyin.money and acc.subject == keyin.subjectNumber[0] and acc.department == keyin.subjectNumber[1] and keyin.who in acc.memo:
+                    if acc.date == keyin.date and acc.money == keyin.money and acc.subject == keyin.subjectNumber[0] and acc.department == keyin.subjectNumber[1] and keyin._who in acc.memo:
                         return True
                 return False
         row = 2
@@ -84,7 +84,7 @@ def write_transfer_sheet(sh: Worksheet,data_not_sunday_acc: t.List[OneDataOfAcc]
                     sh.cell(row, 10).value = keyin3.subjectNumber[1]
                     sh.cell(row, 11).value = keyin3.money
                     sh.cell(row, 12).value = keyin3.memo
-                    sh.cell(row, 13).value = keyin3.who
+                    sh.cell(row, 13).value = keyin3._who
 
                     if _chk_if_keyin_in_accs(keyin3, acc2):
                         sh.cell(row, 11).font = openpyxl.styles.Font(color='008800')

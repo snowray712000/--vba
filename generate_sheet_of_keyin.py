@@ -20,7 +20,7 @@ def generate_sheet_of_keyin(sh, rows: t.List[OneKeyin]):
     row = 2
     for a1 in rows:
         sh.cell(row=row, column=1).value = a1.date
-        sh.cell(row=row, column=2).value = a1.who
+        sh.cell(row=row, column=2).value = a1._who
         sh.cell(row=row, column=3).value = a1.money
         sh.cell(row=row, column=4).value = a1.subject1str
         sh.cell(row=row, column=5).value = a1.subject2str
